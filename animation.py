@@ -93,7 +93,7 @@ class SequenceAnimation(ISingleAnimation):
         self.count = 0
 
     def timeLeft(self):
-        return sum(map(lambda i: self.animations[i].timeLeft(), range(self.count, self.length)))
+        return sum(map(lambda i: self.animations[i].timeLeft(), list(range(self.count, self.length))))
 
 
 class LoopAnimation(IAnimation):
@@ -171,4 +171,4 @@ class ITransformingAnimation(IAnimation):
         """
 
 def shiftedRange(start, end, shift):
-    return range(start + shift, end) + range(start, start + shift)
+    return list(range(start + shift, end)) + list(range(start, start + shift))

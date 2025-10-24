@@ -31,7 +31,7 @@ def _frameRect(a, b):
         return None
     return (a*64, b*64, 64, 128 if b == 0 and (a < 16 or a > 32) else 64)
 
-_frame = [_frameRect(a, b) for b in range(6) for a in range(40)]
+_frame = [_frameRect(a, b) for b in list(range(6)) for a in list(range(40))]
 
 def getFrameRect(n):
     return _frame[n]
@@ -40,20 +40,20 @@ def getFrameRect(n):
 class Fidget(ITransformingAnimation):
     def __init__(self):
 
-        leftWing    = LoopAnimation(FrameAnimation(range(8), 37, (53, 17), (119, 17), (55, 145)))
-        rightWing   = LoopAnimation(FrameAnimation(range(8, 16), 37, (110, 17), (174, 17), (110, 145)))
+        leftWing    = LoopAnimation(FrameAnimation(list(range(8)), 37, (53, 17), (119, 17), (55, 145)))
+        rightWing   = LoopAnimation(FrameAnimation(list(range(8, 16)), 37, (110, 17), (174, 17), (110, 145)))
 
         lookForward = FrameAnimation(
-                range(18, 21) + [21 for i in range(10)] + range(20, 17, -1), 70, (75, 25))
+                list(range(18, 21)) + [21 for i in list(range(10))] + list(range(20, 17, -1)), 70, (75, 25))
         lookUpward  = FrameAnimation(
-                range(25, 21, -1) + [16 for i in range(10)] + range(23, 25), 70, (75, 25))
+                list(range(25, 21, -1)) + [16 for i in list(range(10))] + list(range(23, 25)), 70, (75, 25))
 
         doNothing = FrameAnimation(
                 [31 for i in range(50)], 70, (75, 25))
 
         wagTail = FrameAnimation(
 #                range(80, 159), 35, (79 + 1, 77) , (143 + 1, 77), (71 + 1, 138))
-                range(80, 159), 35, (79 + 1, 77) , (143 + 1, 77), (63 + 1, 138))
+                list(range(80, 159)), 35, (79 + 1, 77) , (143 + 1, 77), (63 + 1, 138))
 
         bodyShake = FrameAnimation(
 #                range(160, 239), 35, (79, 66))
