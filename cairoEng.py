@@ -103,7 +103,7 @@ class Screen(Gtk.DrawingArea):
             # We can just set dt to something low, and the next frame will be correct
             print("warning: skipping a very long tick: %d" % dtmill)
             dtmill = 1
-        self._fidget.update(dtmill)
+        self._fidget.update(dtmill //1.5)
         
         self.clear(cr)
 
@@ -160,7 +160,7 @@ class Refresher(threading.Thread):
         self._window = window
     
     def run(self):
-        fps = 60
+        fps = 20
         tick = 1.0 / fps
         while True:
             sleep(tick)
