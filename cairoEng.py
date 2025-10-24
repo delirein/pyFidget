@@ -23,8 +23,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 ##
+import gi
+gi.require_version('Gtk', '4.0')
+gi.require_version('Gdk', '4.0')
+from gi.repository import GLib, Gdk, Gtk
 
-from gi.repository import GLib, GObject, Gtk
 import cairo
 from time import time, sleep
 import threading
