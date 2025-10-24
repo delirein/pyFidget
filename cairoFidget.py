@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 ##
 # This file is part of pyFidget, licensed under the MIT License (MIT).

@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 
 ##
 # This file is part of pyFidget, licensed under the MIT License (MIT).
@@ -24,9 +24,8 @@
 # THE SOFTWARE.
 ##
 
-import pygtk
-pygtk.require('2.0')
-import gtk, gobject, cairo
+from gi.repository import GLib, GObject, Gtk
+import cairo
 from time import time, sleep
 import threading
 
@@ -55,7 +54,7 @@ def toShapeMap(surface):
     width = surface.get_width()
     height = surface.get_height()
 
-    bitmap = gtk.gdk.Pixmap(None, width, height, 1)
+    bitmap = Gtk.gdk.Pixmap(None, width, height, 1)
     bmpCr = bitmap.cairo_create()
 
     patt = cairo.SurfacePattern(surface)
@@ -65,16 +64,16 @@ def toShapeMap(surface):
 
     return bmpCr, bitmap
 
-class Screen(gtk.DrawingArea):
+class Screen(Gtk.DrawingArea):
 
     # Draw in response to an expose-event
-    __gsignals__ = { "expose-event": "override" }
-    
+    __gisignals__ = { "draw": "override" }
+
     _time = time()
     _shapemap = None
 
     def __init__(self, animation, texture, getFrameRect, offset):
-        gtk.DrawingArea.__init__(self)
+        Gtk.DrawingArea.__init__(self)
         self._fidget = animation
         self._texture = cairo.ImageSurface.create_from_png(texture)
         self._getFrameRect = getFrameRect
@@ -82,10 +81,10 @@ class Screen(gtk.DrawingArea):
         self._offset = offset
 
     # Handle the expose-event by drawing
-    def do_expose_event(self, event):
+    def do_draw(self, event):
         if not hasattr(self, 'bg') :
             if self.is_composited():
-                print("Composite! \o/")
+                print("Composite!")
                 self.bg = None
             else:
                 self.bg = capt_screen(self)
@@ -182,17 +181,17 @@ class Refresher(threading.Thread):
         tick = 1.0 / fps
         while True:
             sleep(tick)
-            gtk.threads_enter()
+            Gtk.threads_enter()
             self.window.queue_draw()
             self.window.queue_resize()
-            gtk.threads_leave()
+            Gtk.threads_leave()
 
 # GTK mumbo-jumbo to show the widget in a window and quit when it's closed
 def run(animation, texture, getFrameRect, size=(200, 200), offset=(0, 0)):
-    gtk.threads_init()
-    gtk.threads_enter()
+    Gtk.threads_init()
+    Gtk.threads_enter()
     
-    window = gtk.Window()
+    window = Gtk.Window()
 
     widget = Screen(animation, texture, getFrameRect, offset)
     widget.show()
@@ -205,7 +204,7 @@ def run(animation, texture, getFrameRect, size=(200, 200), offset=(0, 0)):
             #window.reset_shapes()
             #print("walloc with bitmap")        
 
-    window.connect("delete-event", gtk.main_quit)
+    window.connect("delete-event", Gtk.main_quit)
     window.connect("size-allocate", on_size_allocate)
     window.add(widget)
     window.set_decorated(False)
@@ -216,15 +215,15 @@ def run(animation, texture, getFrameRect, size=(200, 200), offset=(0, 0)):
     window.set_default_size(*size)
 
     colormap = window.get_screen().get_rgba_colormap()
-    gtk.widget_set_default_colormap(colormap)
+    Gtk.widget_set_default_colormap(colormap)
 
     window.present()
     refresher = Refresher(window)
     refresher.start()
     try:
-        gtk.main()
+        Gtk.main()
     finally:
-        gtk.threads_leave()
+        Gtk.threads_leave()
 
 def rgb24to32(data):
     itr = iter(data)
@@ -244,9 +243,9 @@ def rgb24to32(data):
 
 def capt_screen(widget):
     x, y = widget.window.get_position()
-    win = gtk.gdk.get_default_root_window()
+    win = Gtk.gdk.get_default_root_window()
     w, h = win.get_size()
-    pb = gtk.gdk.Pixbuf(0 , False, 8, w, h)
+    pb = Gtk.gdk.Pixbuf(0 , False, 8, w, h)
     widget.hide()
     pb = pb.get_from_drawable(win, win.get_colormap(), 0, 0, 0, 0, w, h)
     widget.show_all()
