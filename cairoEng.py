@@ -24,9 +24,9 @@
 # THE SOFTWARE.
 ##
 import gi
-gi.require_version('Gtk', '4.0')
-gi.require_version('Gdk', '4.0')
-from gi.repository import GLib, Gdk, Gtk
+gi.require_version('Gtk', '3.0')
+gi.require_version('Gdk', '3.0')
+from gi.repository import Gdk, Gtk
 
 import cairo
 from time import time, sleep
@@ -53,18 +53,6 @@ def mkMatrix(p0, p1, p2, size):
                         ex2, ey2,
                         x0 , y0 )
 
-def toShapeMap(surface):
-    width = surface.get_width()
-    height = surface.get_height()
-
-    bitmap = Gtk.gdk.Pixmap(None, width, height, 1)
-    bmpCr = bitmap.cairo_create()
-
-    patt = cairo.SurfacePattern(surface)
-    bmpCr.set_source(patt)
-    bmpCr.set_operator(cairo.OPERATOR_SOURCE)
-    bmpCr.paint()
-
     return bmpCr, bitmap
 
 class Screen(Gtk.DrawingArea):
@@ -75,32 +63,33 @@ class Screen(Gtk.DrawingArea):
     _time = time()
     _shapemap = None
 
-    def __init__(self, animation, texture, getFrameRect, offset):
+    def __init__(self, animation, texture, getFrameRect, offset, window):
         Gtk.DrawingArea.__init__(self)
         self._fidget = animation
         self._texture = cairo.ImageSurface.create_from_png(texture)
         self._getFrameRect = getFrameRect
         self._patt = cairo.SurfacePattern(self._texture)
         self._offset = offset
+        self._window = window
 
     # Handle the expose-event by drawing
-    def do_draw(self, event):
+    def do_draw(self, cr):
         if not hasattr(self, 'bg') :
             if self.is_composited():
-                print("Composite!")
+                #print("Composite!")
                 self.bg = None
             else:
                 self.bg = capt_screen(self)
         
         # Create the cairo context
-        cr = self.window.cairo_create()
+        area = self.get_allocation()
 
         # Restrict Cairo to the exposed area; avoid extra work
-        cr.rectangle(event.area.x, event.area.y,
-                event.area.width, event.area.height)
+        cr.rectangle(area.x, area.y,
+                area.width, area.height)
         cr.clip()
 
-        self.draw(cr, *self.window.get_size())
+        self.draw(cr, *self._window.get_size())
 
     def draw(self, cr, width, height):
         t = time()
@@ -108,7 +97,7 @@ class Screen(Gtk.DrawingArea):
         self._time = t
         dtmill = int(dt * 1000)
         if (dtmill > 20000):
-            # We're realy late, waaay behind the schedule
+            # We're really late, waaay behind the schedule
             # There's no way we're gonna catch up
             # But guess what? It doesn't matter!
             # We can just set dt to something low, and the next frame will be correct
@@ -134,15 +123,6 @@ class Screen(Gtk.DrawingArea):
 
         cr.restore()
         tgtSurface = cr.get_target()
-        
-        bmpCr, shapemap = toShapeMap(tgtSurface)
-
-        self._shapemap = shapemap
-
-        #dbgPatt = cairo.SurfacePattern(bmpCr.get_target())
-        #cr.set_source(dbgPatt)
-        #cr.set_operator(cairo.OPERATOR_SOURCE)
-        #cr.paint()
 
     def shapemap(self):
         return self._shapemap
@@ -177,35 +157,32 @@ class Refresher(threading.Thread):
     def __init__(self, window):
         threading.Thread.__init__(self)
         self.setDaemon(True)
-        self.window = window
+        self._window = window
     
     def run(self):
         fps = 60
         tick = 1.0 / fps
         while True:
             sleep(tick)
-            Gtk.threads_enter()
-            self.window.queue_draw()
-            self.window.queue_resize()
-            Gtk.threads_leave()
+            Gdk.threads_enter()
+            self._window.queue_draw()
+            self._window.queue_resize()
+            Gdk.threads_leave()
 
 # GTK mumbo-jumbo to show the widget in a window and quit when it's closed
 def run(animation, texture, getFrameRect, size=(200, 200), offset=(0, 0)):
-    Gtk.threads_init()
-    Gtk.threads_enter()
+    Gdk.threads_init()
+    Gdk.threads_enter()
     
     window = Gtk.Window()
 
-    widget = Screen(animation, texture, getFrameRect, offset)
+    widget = Screen(animation, texture, getFrameRect, offset, window)
     widget.show()
 
     def on_size_allocate(wind, rect):
-        #print("walloc")
         shapemap = widget.shapemap()
         if shapemap:
             window.input_shape_combine_mask(shapemap, 0, 0)
-            #window.reset_shapes()
-            #print("walloc with bitmap")        
 
     window.connect("delete-event", Gtk.main_quit)
     window.connect("size-allocate", on_size_allocate)
@@ -217,8 +194,9 @@ def run(animation, texture, getFrameRect, size=(200, 200), offset=(0, 0)):
     window.stick()
     window.set_default_size(*size)
 
-    colormap = window.get_screen().get_rgba_colormap()
-    Gtk.widget_set_default_colormap(colormap)
+    visual = window.get_screen().get_rgba_visual()
+    window.set_visual(visual)
+    window.set_opacity(0.99)
 
     window.present()
     refresher = Refresher(window)
@@ -226,7 +204,7 @@ def run(animation, texture, getFrameRect, size=(200, 200), offset=(0, 0)):
     try:
         Gtk.main()
     finally:
-        Gtk.threads_leave()
+        Gdk.threads_leave()
 
 def rgb24to32(data):
     itr = iter(data)

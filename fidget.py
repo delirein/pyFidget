@@ -52,12 +52,9 @@ class Fidget(ITransformingAnimation):
                 [31 for i in range(50)], 70, (75, 25))
 
         wagTail = FrameAnimation(
-#                range(80, 159), 35, (79 + 1, 77) , (143 + 1, 77), (71 + 1, 138))
                 list(range(80, 159)), 35, (79 + 1, 77) , (143 + 1, 77), (63 + 1, 138))
 
         bodyShake = FrameAnimation(
-#                range(160, 239), 35, (79, 66))
-#                range(200, 239) + range(160, 200), 35, (79, 66))
                 shiftedRange(160, 239, 50), 35, (79, 66))
 
         self.animations = [
