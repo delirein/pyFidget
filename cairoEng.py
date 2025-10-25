@@ -61,7 +61,6 @@ class Screen(Gtk.DrawingArea):
     __gisignals__ = { "draw": "override" }
 
     _time = time()
-    _shapemap = None
 
     def __init__(self, animation, texture, getFrameRect, offset, window):
         Gtk.DrawingArea.__init__(self)
@@ -124,9 +123,6 @@ class Screen(Gtk.DrawingArea):
         cr.restore()
         tgtSurface = cr.get_target()
 
-    def shapemap(self):
-        return self._shapemap
-
     def clear(self, cr):
         cr.save()
         cr.set_operator(cairo.OPERATOR_SOURCE)
@@ -179,13 +175,7 @@ def run(animation, texture, getFrameRect, size=(200, 200), offset=(0, 0)):
     widget = Screen(animation, texture, getFrameRect, offset, window)
     widget.show()
 
-    def on_size_allocate(wind, rect):
-        shapemap = widget.shapemap()
-        if shapemap:
-            window.input_shape_combine_mask(shapemap, 0, 0)
-
     window.connect("delete-event", Gtk.main_quit)
-    window.connect("size-allocate", on_size_allocate)
     window.add(widget)
     window.set_decorated(False)
     window.set_skip_taskbar_hint(True)
