@@ -103,7 +103,7 @@ class Screen(Gtk.DrawingArea):
             # We can just set dt to something low, and the next frame will be correct
             print("warning: skipping a very long tick: %d" % dtmill)
             dtmill = 1
-        self._fidget.update(dtmill //1.5)
+        self._fidget.update(dtmill //1.35)
         
         self.clear(cr)
 
